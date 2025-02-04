@@ -2,32 +2,33 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from 'react'
-import { use } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
-import { UserDataContext } from '../context/UserContext';
+import { CaptainDataContext } from '../context/CaptainContext';
+
 
 const CaptainProtectWrapper = ({children}) => {
     const token = localStorage.getItem('token')
     const navigate=useNavigate();
     const [isLoading,setIsLoading]=useState(true);
-    const {user,setUser}=useContext(UserDataContext);
+    const { captain, setCaptain } = useContext(CaptainDataContext)
     useEffect(() => {
         if(!token){
             navigate('/captain-login')
         }
-        axios.get(`${import.meta.env.VITE_API_URL}/captain/profile`, {
+        axios.get(`${import.meta.env.VITE_BASE_URL}/captain/profile`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         }).then(response => {
             if(response.status===200){
-                setUser(response.data)
+                
+                setCaptain(response.data)   //captain put bcz we sent the data as key with captain , (after some time ) now i corrected from backend
                 setIsLoading(false)
             }
         }).catch(error => {
             localStorage.removeItem('token')
-            navigate('/login')
+            navigate('/captain-login')
         })
     },[token])
     if(isLoading){
