@@ -12,6 +12,7 @@ import WaitingForDriver from "../components/WaitingForDriver";
 import axios from "axios";
 import { SocketContext } from "../context/SocketContext";
 import { UserDataContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -36,12 +37,26 @@ const Home = () => {
   const [vehicleType, setVehicleType] = useState(null);
   const { socket } = useContext(SocketContext)
   const { user } = useContext(UserDataContext)
-
+  const[ride,setRide]=useState(null);
+  const navigate = useNavigate();
     useEffect(() => {
         if (user) {
             socket.emit("join", { userType: "user", userId: user._id });
         }
-    }, [user]);
+    }, []);
+
+    socket.on('ride-confirmed', ride => {
+      // console.log(ride);
+      setRide(ride);
+      setVehicleFound(false)
+      setWaitingForDriver(true)
+  })
+
+  socket.on('ride-started', ride => {
+    console.log("ride")
+    setWaitingForDriver(false)
+    navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
+})
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
@@ -55,8 +70,6 @@ const Home = () => {
           },
         }
       );
-      console.log(response);
-
       setPickupSuggestions(response.data);
     } catch {
       // handle error
@@ -198,8 +211,7 @@ const Home = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       }
-    );
-    console.log(response.data);
+    )
   }
 
   return (
@@ -216,6 +228,7 @@ const Home = () => {
           src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
           alt=""
         />
+        {/* {setPanelOpen ? '' : <LiveTracking />} */}
       </div>
       <div className=" flex flex-col justify-end h-screen absolute top-0 w-full">
         <div className="h-[30%] p-6 bg-white relative">
@@ -320,7 +333,11 @@ const Home = () => {
         ref={waitingForDriverRef}
         className="fixed w-full z-10 bottom-0  bg-white px-3 py-6 pt-12"
       >
-        <WaitingForDriver waitingForDriver={waitingForDriver} />
+        <WaitingForDriver 
+        ride={ride}
+        setVehicleFound={setVehicleFound}
+        setWaitingForDriver={setWaitingForDriver}
+        waitingForDriver={waitingForDriver} />
       </div>
     </div>
   );

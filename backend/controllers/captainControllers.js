@@ -48,12 +48,12 @@ module.exports.loginCaptain = async (req, res, next) => {
 }
 
 module.exports.getProfile = async (req, res, next) => {
-    res.status(200).json(req.captain );
+    res.status(200).json({ captain: req.captain });
 }
 
 module.exports.logoutCaptain = async (req, res, next) => {  
     res.clearCookie('token');
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    const token = req.cookies.token || req.headers.authorization.split(' ')[1];
     await BlacklistToken.create({ token });
     // token still present if they save it in local storage or some other user access it
     res.status(200).json({ message: 'Logout successfully' });

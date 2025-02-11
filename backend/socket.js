@@ -3,7 +3,6 @@ const userModel = require("./models/userModel");
 const captainModel = require("./models/captainModel");
 
 let io;
-
 function initializeSocket(server) {
   io = socketIo(server, {
     cors: {
@@ -16,7 +15,6 @@ function initializeSocket(server) {
 
     socket.on("join", async (data) => {
       const { userId, userType } = data;
-      
       if (userType === "user") {
         await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
       } else if (userType === "captain") {
@@ -46,8 +44,8 @@ function initializeSocket(server) {
 }
 
 const sendMessageToSocketId = (socketId, messageObject) => {
-  console.log(messageObject);
-
+  // console.log(socketId,messageObject.event, messageObject.data,"virjesh");
+  
   if (io) {
     io.to(socketId).emit(messageObject.event, messageObject.data);
   } else {

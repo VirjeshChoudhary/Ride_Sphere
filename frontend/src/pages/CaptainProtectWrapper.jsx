@@ -23,7 +23,7 @@ const CaptainProtectWrapper = ({children}) => {
         }).then(response => {
             if(response.status===200){
                 
-                setCaptain(response.data)   //captain put bcz we sent the data as key with captain , (after some time ) now i corrected from backend
+                setCaptain(response.data.captain)   //captain put bcz we sent the data as key with captain , (after some time ) now i corrected from backend
                 setIsLoading(false)
             }
         }).catch(error => {
