@@ -14,6 +14,7 @@ import CaptainHome from './pages/CaptainHome'
 import CaptainLogout from './pages/CaptainLogout'
 import Riding from './pages/Riding'
 import CaptainRiding from './pages/CaptainRiding'
+import Success from './pages/Success'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Route path='/signup' element={<UserSignup />} />
           <Route path='/login' element={<UserLogin/>} />
           <Route path='/riding' element={<Riding/>} />
+          <Route path='/success' element={<Success />} /> {/* Add the Success route */}
           
           <Route path='/captain-signup' element={<CaptainSignup/>} />
           <Route path='/captain-login' element={<CaptainLogin/>} />

@@ -2,6 +2,7 @@ const captainService = require('../services/captainService');
 const { validationResult } = require('express-validator');
 const BlacklistToken = require('../models/blacklistTokenModel');
 const captainModel = require('../models/captainModel');
+const client = require('../redis');
 
 module.exports.registerCaptain = async (req, res, next) => {
     const errors = validationResult(req);
@@ -48,7 +49,15 @@ module.exports.loginCaptain = async (req, res, next) => {
 }
 
 module.exports.getProfile = async (req, res, next) => {
+    const captainCache = await client.get('captain');
+    if (captainCache) {
+        return res.status(200).json(JSON.parse(captainCache));
+    }   
+
     res.status(200).json({ captain: req.captain });
+    client.set('captain', JSON.stringify(req.captain));
+    client.expire('captain', 15);
+    
 }
 
 module.exports.logoutCaptain = async (req, res, next) => {  

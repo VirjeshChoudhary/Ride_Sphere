@@ -3,6 +3,8 @@ import React, { useContext } from 'react'
 import { Link , useLocation, useNavigate} from 'react-router-dom'
 import { SocketContext } from '../context/SocketContext'
 import LiveTracking from '../components/LiveTracking'
+import {loadStripe} from '@stripe/stripe-js'
+import axios from 'axios'
 
 const Riding = () => {
     const location = useLocation()
@@ -13,6 +15,24 @@ const Riding = () => {
     socket.on("ride-ended", () => {
         navigate('/home')
     })
+    const makePayment = async () => {
+        try {
+            const stripe = await loadStripe('pk_test_51OyU0dSBko0KmiZ7gBtSs9nEIdh7S9pYMrwufZsIf6DHvhGr9omLp5Q66rgF11tJadq7D7esfPiD05Eo6coqkohV00v50nTWEl');
+            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/make-payment`, {
+                rideId: ride._id
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (response.status === 200) {
+                const session = response.data;
+                stripe.redirectToCheckout({ sessionId: session.id });
+            }
+        } catch (error) {
+            console.error('Error making payment:', error);
+        }
+    };
     return (
         <div className='h-screen'>
             <Link to='/home' className='fixed right-2 top-2 h-10 w-10 bg-white flex items-center justify-center rounded-full'>
@@ -52,7 +72,7 @@ const Riding = () => {
                         </div>
                     </div>
                 </div>
-                <button className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Make a Payment</button>
+                <button onClick={makePayment} className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Make a Payment</button>
             </div>
         </div>
     )

@@ -3,6 +3,8 @@ const router = express.Router();
 const { body, query } = require('express-validator');
 const rideController=require('../controllers/rideController');
 const authMiddleware=require('../middlewares/authMiddleware')
+const stripe=require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Ride=require('../models/rideModel')
 
 
 router.post('/create',
@@ -38,5 +40,55 @@ router.post('/end-ride',
     rideController.endRide
 )
 
+router.post('/make-payment',
+    authMiddleware.authUser,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    async (req, res) => {
+        try {
+            const rideId = req.body.rideId;
+            const ride = await Ride.findById(rideId).populate('captain').populate('user');
+            if (!ride) {
+                return res.status(400).json({ error: 'Ride not found' });
+            }
+
+            // Create a customer
+            const customer = await stripe.customers.create({
+                name: `${ride.user.fullname.firstname} ${ride.user.fullname.lastname}`,
+                address: {
+                    line1: 'Customer Address Line 1',
+                    line2: 'Customer Address Line 2',
+                    city: 'Customer City',
+                    state: 'Customer State',
+                    postal_code: 'Customer Postal Code',
+                    country: 'IN',
+                },
+            });
+
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'inr',
+                            product_data: {
+                                name: 'Ride Fare',
+                            },
+                            unit_amount: ride.fare * 100,
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                customer: customer.id, // Use the customer ID
+                success_url: `${process.env.FRONTEND_URL}/success`,
+                cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+            });
+            res.status(200).json(session);
+        } catch (error) {
+            console.error('Error creating payment session:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+);
 
 module.exports=router;

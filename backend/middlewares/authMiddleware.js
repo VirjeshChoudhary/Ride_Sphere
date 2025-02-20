@@ -1,5 +1,4 @@
 const userModel=require('../models/userModel');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const BlacklistToken=require('../models/blacklistTokenModel');
 const captainModel = require('../models/captainModel'); // Ensure captainModel is imported

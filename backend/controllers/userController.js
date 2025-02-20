@@ -2,14 +2,39 @@ const BlacklistToken = require('../models/blacklistTokenModel');
 const userModel=require('../models/userModel');
 const userService=require('../services/userService');
 const {validationResult}=require('express-validator');
+const nodemailer = require("nodemailer");
+const  client=require('../redis');
 
-module.exports.registerUser = async (req, res, next) => {
+const sendMail = async ({email}) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail", 
+            secure: true, 
+            port: 465,
+            auth: {
+                user:"vntc468@gmail.com", 
+                pass: "oympdouvbzaubwxx"  
+            }
+        });
+        const mailOptions = {
+            from: "vntc468@gmail.com", 
+            to: `${email}`,  
+            subject: "Register in UBER",
+            text: "Thanks for using our service",
+        };
+        const info = await transporter.sendMail(mailOptions);
+        // console.log("Email sent successfully: ", info.response);
+    } catch (error) {
+        console.error("Error sending email: ", error);
+    }
+};
+
+module.exports.registerUser = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
     const { fullname, email, password } = req.body;
-    
     const isUserAlready = await userModel.findOne({ email });
     if (isUserAlready) {
         return res.status(400).json({ message: 'User already exist' });
@@ -21,8 +46,9 @@ module.exports.registerUser = async (req, res, next) => {
         email,
         password
     });
+    sendMail({email});
     const token = user.generateAuthToken();
-    res.status(201).json({ token, user });
+    res.status(201).cookie('token',token).json({ token, user });
 }
 
 module.exports.loginUser = async (req, res, next) => {
@@ -40,12 +66,20 @@ module.exports.loginUser = async (req, res, next) => {
         return res.status(401).json({ message: 'Invalid email or password' });
     }
     const token = user.generateAuthToken();
-
+    // sendMail({email});
     res.status(200).cookie('token',token).json({ token, user });
 }
 
 module.exports.getProfile = async (req, res, next) => {
+    const userCache=await client.get('user');
+    if(userCache){
+        return res.status(200).json(JSON.parse(userCache));
+    }
     res.status(200).json(req.user);
+    client.set('user',JSON.stringify(req.user));
+    client.expire('user',15);
+    // console.log("REdis");
+    
 }
 
 module.exports.logoutUser = async (req, res, next) => {

@@ -26,6 +26,12 @@ app.use('/user',userRoutes);
 app.use('/captain',captainRoutes);
 app.use('/maps',mapsRoutes);
 app.use('/rides',rideRoutes);
+// app.get(`${process.env.FRONTEND_URL}/success`,(req,res)=>{
+//     res.send('Payment Successfull');
+// })
+// app.get(`${process.env.FRONTEND_URL}/cancel`,(req,res)=>{
+//     res.send('Payment Cancelled');
+// })
 
 app.get('/',(req,res)=>{
     res.send('Hello World');
