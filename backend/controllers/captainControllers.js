@@ -56,7 +56,7 @@ module.exports.getProfile = async (req, res, next) => {
 
     res.status(200).json({ captain: req.captain });
     client.set('captain', JSON.stringify(req.captain));
-    client.expire('captain', 15);
+    client.expire('captain', 50);
     
 }
 

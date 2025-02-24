@@ -70,17 +70,44 @@ module.exports.loginUser = async (req, res, next) => {
     res.status(200).cookie('token',token).json({ token, user });
 }
 
+// module.exports.getProfile = async (req, res, next) => {
+//     try {
+//         const userCache = await client.get('user');
+//         console.log("🔍 Cached Data:", req.user);
+
+//         if (userCache) {
+//             console.log("✅ Fetched from Redis");
+//             return res.status(200).json(JSON.parse(userCache));
+//         }
+
+//         // Set data to Redis with expiration in one command
+//         const setResponse = await client.set('user', JSON.stringify(req.user), 'EX', 10);
+//         console.log("📦 Redis SET response:", setResponse); // Should be 'OK'
+
+//         if (setResponse === 'OK') {
+//             console.log("✅ User data cached in Redis");
+//         } else {
+//             console.error("❌ Failed to set data in Redis");
+//         }
+
+//         res.status(200).json(req.user);
+//     } catch (err) {
+//         console.error("❌ Redis Error:", err);
+//         res.status(500).json({ message: "Internal Server Error" });
+//     }
+// };
+
 module.exports.getProfile = async (req, res, next) => {
-    const userCache=await client.get('user');
-    if(userCache){
+    const userCache = await client.get('user');
+    if (userCache) {
         return res.status(200).json(JSON.parse(userCache));
-    }
+    }   
+
     res.status(200).json(req.user);
-    client.set('user',JSON.stringify(req.user));
-    client.expire('user',15);
-    // console.log("REdis");
-    
+    client.set('user', JSON.stringify(req.user));
+    client.expire('user', 50);
 }
+
 
 module.exports.logoutUser = async (req, res, next) => {
     res.clearCookie('token');
